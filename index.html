@@ -106,6 +106,13 @@
   .guide-toggle { font-size: 12px; color: var(--accent); cursor: pointer; margin-left: 12px; }
   .guide-content { display: none; background: var(--input-bg); border-radius: 4px; padding: 14px 18px; margin-top: 12px; font-size: 13px; line-height: 2; }
   .guide-content.open { display: block; }
+
+  .about-section { margin-top: 12px; text-align: center; }
+  .about-toggle { font-size: 12px; color: var(--text-secondary); cursor: pointer; user-select: none; }
+  .about-toggle:hover { color: var(--accent); }
+  .about-content { display: none; background: var(--input-bg); border-radius: 4px; padding: 12px 18px; margin: 8px auto 0; max-width: 420px; font-size: 13px; line-height: 2; color: var(--text-secondary); text-align: left; }
+  .about-content.open { display: block; }
+  .about-content p { margin: 2px 0; }
 </style>
 </head>
 <body>
@@ -159,6 +166,11 @@
   </div>
 
   <div class="footnote" id="footnote"></div>
+
+  <div class="about-section">
+    <span class="about-toggle" onclick="toggleAbout()" id="aboutToggle"></span>
+    <div class="about-content" id="aboutContent"></div>
+  </div>
 </div>
 
 <script>
@@ -218,6 +230,10 @@ const DICT = {
     exportBase: '{base}：{mw} Da, {conc} mg/mL × {vol} {unit} = {nmol} nmol',
     exportLine: '{name}：MW {mw} Da, eq {eq}, 模式: {mode}, 储液 {stock} mM, 加样 {add} μL',
     exportOrg: '有机相占比：{pct}%（上限 ≤{limit}%）',
+    aboutToggle: '📋 关于本工具',
+    aboutDev: '开发者：杨博',
+    aboutGzh: '公众号：You-Ta-too',
+    aboutHint: '如果感觉好用，欢迎到公众号点赞或后台留言~',
   },
   en: {
     pageTitle: 'ADC Conjugation Equivalents Calculator',
@@ -274,6 +290,10 @@ const DICT = {
     exportAb: 'Ab: {mw} Da, {conc} mg/mL \u00d7 {vol} {unit} = {nmol} nmol',
     exportLine: '{name}: MW {mw} Da, eq {eq}, mode: {mode}, stock {stock} mM, added {add} \u03bcL',
     exportOrg: 'Organic phase: {pct}% (limit \u2264{limit}%)',
+    aboutToggle: '\u{1F4CB} About',
+    aboutDev: 'Developer: Dr. Yang',
+    aboutGzh: 'WeChat: You-Ta-too',
+    aboutHint: 'If you find this tool useful, please visit our account to like or leave a comment~',
   },
 };
 
@@ -307,6 +327,9 @@ function applyStaticText() {
   document.getElementById('btnCopy').textContent = t('btnCopy');
   document.getElementById('footnote').innerHTML = t('footnote');
   document.getElementById('guide').innerHTML = t('guide').replace('{base}', esc(baseLabel));
+  document.getElementById('aboutToggle').textContent = t('aboutToggle');
+  document.getElementById('aboutContent').innerHTML = '<p>' + t('aboutDev') + '</p><p>' + t('aboutGzh') + '</p><p>' + t('aboutHint') + '</p>';
+
   document.getElementById('langZh').className = state.lang === 'zh' ? 'active' : '';
   document.getElementById('langEn').className = state.lang === 'en' ? 'active' : '';
 
@@ -866,6 +889,7 @@ function exportTable() {
 // ============ 辅助 ============
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function toggleGuide() { document.getElementById('guide').classList.toggle('open'); }
+function toggleAbout() { document.getElementById('aboutContent').classList.toggle('open'); }
 
 // ============ 启动 ============
 applyStaticText();
