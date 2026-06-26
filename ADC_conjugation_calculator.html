@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADC 偶联反应计量表</title>
+<style>
+  :root {
+    --bg: #fafbfc; --card-bg: #ffffff; --border: #e1e4e8;
+    --text: #24292e; --text-secondary: #586069; --accent: #0366d6;
+    --warn-bg: #fff5b1; --warn-border: #f9c513;
+    --danger-bg: #ffeef0; --danger-border: #d73a49;
+    --input-bg: #f6f8fa; --row-hover: #f6f8fa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+    padding: 32px 24px; font-size: 14px;
+  }
+  .container { max-width: 1020px; margin: 0 auto; }
+
+  .header { margin-bottom: 28px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .header .sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  .lang-switch {
+    display: flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; flex-shrink: 0;
+  }
+  .lang-switch button {
+    padding: 4px 10px; font-size: 12px; border: none; cursor: pointer;
+    background: var(--card-bg); color: var(--text-secondary); transition: background 0.15s;
+  }
+  .lang-switch button.active { background: var(--accent); color: #fff; }
+
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 20px 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 16px; }
+
+  .settings { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .settings .field-group { display: flex; align-items: center; gap: 8px; }
+  .settings label { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+  .settings select, .settings input { padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; background: var(--input-bg); }
+  .settings input { width: 56px; }
+  .settings select { width: auto; }
+  .settings .sep { color: var(--border); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: auto; min-width: 500px; }
+  thead th {
+    background: var(--input-bg); border-bottom: 2px solid var(--border);
+    padding: 10px 14px; text-align: center; font-weight: 600; font-size: 12px;
+    color: var(--text-secondary); white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; min-width: 130px; }
+  thead th input {
+    text-align: center; font-weight: 600; font-size: 12px;
+    color: var(--text-secondary); border: none; background: transparent;
+    padding: 0; outline: none; width: 100%; font-family: inherit;
+  }
+  thead th input:focus { color: var(--text); }
+  tbody td {
+    padding: 8px 14px; border-bottom: 1px solid #f0f0f0;
+    text-align: center; white-space: nowrap;
+  }
+  tbody td:first-child { text-align: left; font-weight: 500; color: var(--text-secondary); }
+  tbody tr:hover { background: var(--row-hover); }
+  tbody tr.mode-row { background: #fafbfc; }
+  tbody tr.mode-row:hover { background: #f0f2f5; }
+
+  tbody input {
+    width: 78px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 3px;
+    text-align: center; font-size: 13px;
+    font-family: "SF Mono", "Consolas", "Menlo", monospace;
+    background: var(--input-bg);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  tbody input:focus { border-color: var(--accent); background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(3,102,214,0.15); }
+  tbody select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 3px; font-size: 12px; background: var(--input-bg); }
+
+  .calc-val { font-family: "SF Mono", "Consolas", "Menlo", monospace; font-size: 13px; color: var(--text); }
+  .calc-dim { font-family: "SF Mono", "Consolas", "Menlo", monospace; font-size: 13px; color: #959da5; }
+  .dash { color: #d1d5da; }
+  .hint { font-size: 11px; color: #959da5; margin-left: 4px; }
+  .section-sep td { border-bottom: 2px solid var(--border); height: 0; padding: 0; }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
+  .btn {
+    padding: 6px 14px; border: 1px solid var(--border); border-radius: 4px;
+    font-size: 12px; cursor: pointer; background: var(--card-bg); color: var(--text);
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--input-bg); }
+  .btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-accent:hover { background: #0256cc; }
+  .btn-danger { color: #d73a49; }
+  .btn-danger:hover { background: #ffeef0; border-color: #d73a49; }
+  .btn-ghost { border: none; padding: 4px 8px; color: var(--text-secondary); background: none; font-size: 12px; }
+  .btn-ghost:hover { color: var(--text); background: var(--input-bg); }
+
+  .alert { padding: 10px 14px; border-radius: 4px; margin-top: 12px; font-size: 13px; }
+  .alert-warn { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+  .alert-danger { background: var(--danger-bg); border: 1px solid var(--danger-border); }
+  .alert code { font-family: "SF Mono", "Consolas", monospace; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 2px; }
+
+  .footnote { font-size: 12px; color: var(--text-secondary); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 20px; line-height: 1.8; }
+
+  .guide-toggle { font-size: 12px; color: var(--accent); cursor: pointer; margin-left: 12px; }
+  .guide-content { display: none; background: var(--input-bg); border-radius: 4px; padding: 14px 18px; margin-top: 12px; font-size: 13px; line-height: 2; }
+  .guide-content.open { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1 id="pageTitle"></h1>
+      <div class="sub" id="pageSubtitle"></div>
+    </div>
+    <div class="lang-switch">
+      <button id="langZh" onclick="setLang('zh')">中文</button>
+      <button id="langEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" id="cardSettingsTitle"></div>
+    <div class="settings">
+      <div class="field-group">
+        <label id="lblAbUnit"></label>
+        <select id="abVolUnit" onchange="onStateChange()">
+          <option value="μL">μL</option>
+          <option value="mL">mL</option>
+        </select>
+      </div>
+      <span class="sep">|</span>
+      <div class="field-group">
+        <label id="lblOrgLimit"></label>
+        <input type="number" id="orgLimit" value="5" step="0.5" onchange="onStateChange()"> %
+      </div>
+      <span class="sep">|</span>
+      <button class="btn btn-ghost" onclick="resetAll()" id="btnReset"></button>
+      <span class="guide-toggle" onclick="toggleGuide()" id="btnHelp"></span>
+    </div>
+    <div class="guide-content" id="guide"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" id="cardTableTitle"></div>
+    <div class="table-wrap">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-accent" onclick="addReagent()" id="btnAdd"></button>
+      <button class="btn" onclick="exportTable()" id="btnCopy"></button>
+    </div>
+    <div id="warnings"></div>
+  </div>
+
+  <div class="footnote" id="footnote"></div>
+</div>
+
+<script>
+// ============ 翻译字典 ============
+const DICT = {
+  zh: {
+    pageTitle: 'ADC 偶联当量计算器',
+    pageSubtitle: '基础–试剂当量计算 · 反应当量设计工具',
+    cardSettings: '反应设置',
+    lblAbUnit: '基础体积单位',
+    lblOrgLimit: '有机溶剂上限',
+    btnReset: '↺ 重置',
+    btnHelp: '? 使用帮助',
+    cardTable: '当量计量表',
+    btnAdd: '+ 添加试剂',
+    btnCopy: '复制到剪贴板',
+    thAntibody: '抗体',
+    rowMw: '相对分子量 (Da)',
+    rowMassConc: '质量浓度 (mg/mL)',
+    rowWeigh: '称取质量 (mg)',
+    rowSolvent: '溶剂体积 (μL)',
+    rowDensity: '密度 (g/mL)',
+    rowSample: '取样体积 (μL)',
+    rowDiluent: '稀释溶剂 (μL)',
+    rowStockConc: '储液浓度 (mM)',
+    rowVolume: '取用体积',
+    rowNmol: '摩尔量 (nmol)',
+    rowEq: '当量比 (eq)',
+    rowOrg: '有机相占比 (%)',
+    rowMode: '输入模式',
+    modeStock: '储液浓度 (mM)',
+    modeMassConc: '质量浓度 (mg/mL)',
+    modePowder: '粉末称量',
+    modeLiquid: '纯液体',
+    warnOrgOver: '有机相占比 {pct}% 超过上限 {limit}%。请提高储液浓度、降低当量比或稀释{base}。',
+    warnOrgNear: '有机相占比 {pct}% 接近上限 {limit}%，请注意。',
+    warnEqHigh: '{name} 当量比为 {eq} eq，偏高——请确认试剂稳定性。',
+    promptReagent: '试剂名称（如 LP-2、TCEP、还原剂）：',
+    promptDefault: '试剂',
+    confirmReset: '确定清除所有数据并恢复默认？',
+    copied: '已复制到剪贴板。',
+    modeLabel: { stock: '储液浓度', massConc: '质量浓度', powder: '粉末', liquid: '纯液体' },
+    footnote: '数据通过浏览器本地存储自动保存，关闭页面后重新打开自动恢复。<br>四种试剂模式：储液浓度(mM) | 质量浓度(mg/mL) | 粉末称量 | 纯液体(密度换算)',
+    guide: `<strong>使用步骤</strong><br>
+① 填写<b>{base}</b>列：相对分子量 (Da)、质量浓度 (mg/mL)、取用体积<br>
+② <b>添加试剂</b>（LP / TCEP / 还原剂等），选择输入模式：<br>
+&nbsp;&nbsp;&nbsp;· <b>储液浓度</b> — 直接输入 mM<br>
+&nbsp;&nbsp;&nbsp;· <b>质量浓度</b> — 已知 mg/mL，自动换算 mM<br>
+&nbsp;&nbsp;&nbsp;· <b>粉末称量</b> — 称量 mg + 溶剂 μL → 自动算 mM<br>
+&nbsp;&nbsp;&nbsp;· <b>纯液体</b> — 密度 g/mL + 取样 μL + 稀释溶剂 μL → 自动算 mM<br>
+③ 填入 MW 和当量比，取用体积自动算出<br>
+④ 有机相占比超标会有警告<br>
+<br>
+<strong>当量比 (eq)</strong> = 试剂摩尔量 ÷ {base}摩尔量，以{base}为 1 eq 计算`,
+    exportTitle: 'ADC 偶联当量计算器',
+    exportAb: '抗体：{mw} Da, {conc} mg/mL × {vol} {unit} = {nmol} nmol',
+    exportBase: '{base}：{mw} Da, {conc} mg/mL × {vol} {unit} = {nmol} nmol',
+    exportLine: '{name}：MW {mw} Da, eq {eq}, 模式: {mode}, 储液 {stock} mM, 加样 {add} μL',
+    exportOrg: '有机相占比：{pct}%（上限 ≤{limit}%）',
+  },
+  en: {
+    pageTitle: 'ADC Conjugation Equivalents Calculator',
+    footnote: 'Data is saved automatically in your browser. Reopen to restore.',
+    exportBase: '{base}: {mw} Da, {conc} mg/mL × {vol} {unit} = {nmol} nmol',
+    pageSubtitle: 'Antibody\u2013Drug Conjugate \u00b7 Reaction Planning Table',
+    cardSettings: 'Reaction Setup',
+    lblAbUnit: 'Ab volume unit',
+    lblOrgLimit: 'Organic solvent limit',
+    btnReset: '\u21ba Reset',
+    btnHelp: '? Help',
+    cardTable: 'Stoichiometry Table',
+    btnAdd: '+ Add Reagent',
+    btnCopy: 'Copy to Clipboard',
+    thAntibody: 'Antibody',
+    rowMw: 'MW (Da)',
+    rowMassConc: 'Conc (mg/mL)',
+    rowWeigh: 'Weigh (mg)',
+    rowSolvent: 'Solvent (μL)',
+    rowDensity: 'Density (g/mL)',
+    rowSample: 'Sample (μL)',
+    rowDiluent: 'Diluent (μL)',
+    rowStockConc: 'Stock conc (mM)',
+    rowVolume: 'Volume',
+    rowNmol: 'n (nmol)',
+    rowEq: 'eq ratio',
+    rowOrg: 'Org. phase (%)',
+    rowMode: 'Input mode',
+    modeStock: 'Stock conc (mM)',
+    modeMassConc: 'Mass conc (mg/mL)',
+    modePowder: 'Weigh powder',
+    modeLiquid: 'Pure liquid',
+    warnOrgOver: 'Organic phase {pct}% exceeds limit {limit}%. Increase stock conc, reduce eq, or dilute {base}.',
+    warnOrgNear: 'Organic phase {pct}% approaching limit {limit}%.',
+    warnEqHigh: '{name} eq ratio {eq} is high \u2014 verify reagent stability.',
+    promptReagent: 'Reagent name (e.g. LP-2, TCEP, reducing agent):',
+    promptDefault: 'Reagent',
+    confirmReset: 'Clear all data and restore defaults?',
+    copied: 'Copied to clipboard.',
+    modeLabel: { stock: 'Stock', massConc: 'Mass conc', powder: 'Powder', liquid: 'Liquid' },
+    footnote: 'Data saved automatically via browser storage. Reopen to restore.<br>Four modes: Stock conc (mM) | Mass conc (mg/mL) | Weigh powder | Pure liquid (density)',
+    guide: `<strong>Usage</strong><br>
+\u2460 Fill <b>{base}</b> column: MW (Da), Conc (mg/mL), Volume<br>
+\u2461 <b>Add reagents</b> (LP / TCEP / reducing agent, etc.), choose input mode:<br>
+&nbsp;&nbsp;&nbsp;\u00b7 <b>Stock conc</b> \u2014 enter mM directly<br>
+&nbsp;&nbsp;&nbsp;\u00b7 <b>Mass conc</b> \u2014 known mg/mL, auto-convert to mM<br>
+&nbsp;&nbsp;&nbsp;\u00b7 <b>Weigh powder</b> \u2014 mass (mg) + solvent (\u03bcL) \u2192 auto mM<br>
+&nbsp;&nbsp;&nbsp;\u00b7 <b>Pure liquid</b> \u2014 density (g/mL) + sample (\u03bcL) + diluent (\u03bcL) \u2192 auto mM<br>
+\u2462 Fill MW and eq ratio, add volume auto-calculated<br>
+\u2463 Warning shown if organic phase exceeds limit<br>
+<br>
+<strong>eq ratio</strong> = moles of reagent \u00f7 moles of {base}, with {base} as 1 eq`,
+    exportTitle: 'ADC Conjugation Equivalents',
+    exportAb: 'Ab: {mw} Da, {conc} mg/mL \u00d7 {vol} {unit} = {nmol} nmol',
+    exportLine: '{name}: MW {mw} Da, eq {eq}, mode: {mode}, stock {stock} mM, added {add} \u03bcL',
+    exportOrg: 'Organic phase: {pct}% (limit \u2264{limit}%)',
+  },
+};
+
+// ============ 语言管理 ============
+function t(key) {
+  let val = DICT[state.lang]?.[key];
+  return val !== undefined ? val : DICT['zh'][key] || key;
+}
+
+function setLang(lang) {
+  if (lang === state.lang) return;
+  state.lang = lang;
+  saveState();
+  applyStaticText();
+  renderTable();
+}
+
+function applyStaticText() {
+  const baseLabel = getBaseLabel();
+  document.title = t('pageTitle');
+  document.getElementById('pageTitle').textContent = t('pageTitle');
+  document.getElementById('pageSubtitle').textContent = t('pageSubtitle');
+  document.getElementById('cardSettingsTitle').textContent = t('cardSettings');
+  document.getElementById('lblAbUnit').textContent = t('lblAbUnit');
+  document.getElementById('lblOrgLimit').textContent = t('lblOrgLimit');
+  document.getElementById('btnReset').textContent = t('btnReset');
+  document.getElementById('btnReset').title = state.lang === 'zh' ? '清除所有数据恢复默认' : 'Clear all data and restore defaults';
+  document.getElementById('btnHelp').textContent = t('btnHelp');
+  document.getElementById('cardTableTitle').textContent = t('cardTable');
+  document.getElementById('btnAdd').textContent = t('btnAdd');
+  document.getElementById('btnCopy').textContent = t('btnCopy');
+  document.getElementById('footnote').innerHTML = t('footnote');
+  document.getElementById('guide').innerHTML = t('guide').replace('{base}', esc(baseLabel));
+  document.getElementById('langZh').className = state.lang === 'zh' ? 'active' : '';
+  document.getElementById('langEn').className = state.lang === 'en' ? 'active' : '';
+
+}
+
+
+// ============ 数据模型 ============
+const STORAGE_KEY = 'adc_calc_v3';
+
+let state = loadState();
+
+function defaultState() {
+  return {
+    lang: 'zh',
+    abVolUnit: 'μL',
+    orgLimit: 5,
+    baseLabel: '抗体',
+    antibody: { mw: 150000, conc: 10, vol: 500, mode: 'massConc', stockConc: 0, weighMg: '', solventUl: '', density: '', sampleUl: '', diluentUl: '' },
+    reagents: [
+      { id: 0, name: 'LP', mw: 1200, eq: 10, mode: 'stock', stockConc: 4, massConc: '', weighMg: '', solventUl: '', density: '', sampleUl: '', diluentUl: '' },
+      { id: 1, name: 'TCEP', mw: 286.65, eq: 3, mode: 'stock', stockConc: 10, massConc: '', weighMg: '', solventUl: '', density: '', sampleUl: '', diluentUl: '' },
+    ],
+    nextId: 2,
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (!s.lang) s.lang = 'zh';
+      if (!s.baseLabel) s.baseLabel = '抗体';
+      if (!s.antibody.mode) s.antibody.mode = 'massConc';
+      if (s.antibody.stockConc === undefined) s.antibody.stockConc = 0;
+      if (s.antibody.weighMg === undefined) s.antibody.weighMg = '';
+      if (s.antibody.solventUl === undefined) s.antibody.solventUl = '';
+      if (s.antibody.density === undefined) s.antibody.density = '';
+      if (s.antibody.sampleUl === undefined) s.antibody.sampleUl = '';
+      if (s.antibody.diluentUl === undefined) s.antibody.diluentUl = '';
+      s.reagents.forEach(r => {
+        if (r.massConc === undefined) r.massConc = '';
+        if (r.density === undefined) r.density = '';
+        if (r.sampleUl === undefined) r.sampleUl = '';
+        if (r.diluentUl === undefined) r.diluentUl = '';
+      });
+      return s;
+    }
+  } catch (e) { /* ignore */ }
+  return defaultState();
+}
+
+function saveState() {
+  syncDomToState();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+}
+
+function resetAll() {
+  if (!confirm(t('confirmReset'))) return;
+  state = defaultState();
+  state.lang = document.getElementById('langZh').className === 'active' ? 'zh' : 'en';
+  saveState();
+  applyStaticText();
+  document.getElementById('abVolUnit').value = state.abVolUnit;
+  document.getElementById('orgLimit').value = state.orgLimit;
+  if (document.getElementById('ab_mode_sel')) document.getElementById('ab_mode_sel').value = state.antibody.mode;
+  renderTable();
+}
+
+function syncDomToState() {
+  state.abVolUnit = document.getElementById('abVolUnit').value;
+  state.orgLimit = parseFloat(document.getElementById('orgLimit').value) || 5;
+  state.baseLabel = document.getElementById('baseLabelInput') ? document.getElementById('baseLabelInput').value : state.baseLabel;
+  const am = document.getElementById('ab_mw');
+  const ac = document.getElementById('ab_conc');
+  const av = document.getElementById('ab_vol');
+  const abMode = document.getElementById('ab_mode_sel');
+  const abStock = document.getElementById('ab_stock');
+  const abWeigh = document.getElementById('ab_weigh');
+  const abSolvent = document.getElementById('ab_solvent');
+  const abDensity = document.getElementById('ab_density');
+  const abSample = document.getElementById('ab_sample');
+  const abDiluent = document.getElementById('ab_diluent');
+  if (am) state.antibody.mw = parseFloat(am.value) || 150000;
+  if (ac) state.antibody.conc = parseFloat(ac.value) || 10;
+  if (av) state.antibody.vol = parseFloat(av.value) || 500;
+  if (abMode) state.antibody.mode = abMode.value;
+  if (abStock) state.antibody.stockConc = parseFloat(abStock.value) || 0;
+  if (abWeigh) state.antibody.weighMg = parseFloat(abWeigh.value) || '';
+  if (abSolvent) state.antibody.solventUl = parseFloat(abSolvent.value) || '';
+  if (abDensity) state.antibody.density = parseFloat(abDensity.value) || '';
+  if (abSample) state.antibody.sampleUl = parseFloat(abSample.value) || '';
+  if (abDiluent) state.antibody.diluentUl = parseFloat(abDiluent.value) || '';
+  state.reagents.forEach(r => {
+    const mw   = document.getElementById(`r${r.id}_mw`);
+    const eq   = document.getElementById(`r${r.id}_eq`);
+    const mode = document.getElementById(`r${r.id}_mode`);
+    const stock  = document.getElementById(`r${r.id}_stock`);
+    const massC  = document.getElementById(`r${r.id}_massConc`);
+    const weigh  = document.getElementById(`r${r.id}_weigh`);
+    const solvent = document.getElementById(`r${r.id}_solvent`);
+    const density = document.getElementById(`r${r.id}_density`);
+    const sample  = document.getElementById(`r${r.id}_sample`);
+    const diluent = document.getElementById(`r${r.id}_diluent`);
+    if (mw)      r.mw       = parseFloat(mw.value) || 0;
+    if (eq)      r.eq       = parseFloat(eq.value) || 0;
+    if (mode)    r.mode     = mode.value;
+    if (stock)   r.stockConc = parseFloat(stock.value) || 0;
+    if (massC)   r.massConc  = parseFloat(massC.value) || '';
+    if (weigh)   r.weighMg   = parseFloat(weigh.value) || '';
+    if (solvent) r.solventUl  = parseFloat(solvent.value) || '';
+    if (density) r.density   = parseFloat(density.value) || '';
+    if (sample)  r.sampleUl   = parseFloat(sample.value) || '';
+    if (diluent) r.diluentUl  = parseFloat(diluent.value) || '';
+  });
+}
+
+function onStateChange() {
+  syncDomToState();
+  saveState();
+  renderTable();
+}
+
+// ============ 计算逻辑 ============
+function getAbMol() {
+  const volUl = state.abVolUnit === 'μL' ? state.antibody.vol : state.antibody.vol * 1000;
+  if (!volUl || !state.antibody.mw) return 0;
+
+  // 先算基础列的储液浓度 (mM)
+  let stockConc = 0;
+  switch (state.antibody.mode || 'massConc') {
+    case 'massConc':
+      if (!state.antibody.conc) return 0;
+      stockConc = (state.antibody.conc / state.antibody.mw) * 1000;
+      break;
+    case 'stock':
+      stockConc = state.antibody.stockConc || 0;
+      break;
+    case 'powder':
+      if (!state.antibody.weighMg || !state.antibody.solventUl) return 0;
+      stockConc = (state.antibody.weighMg / state.antibody.mw) / (state.antibody.solventUl / 1000) * 1000;
+      break;
+    case 'liquid': {
+      if (!state.antibody.density || !state.antibody.sampleUl) return 0;
+      const mass = state.antibody.sampleUl * state.antibody.density / 1000;
+      const totalVol = state.antibody.sampleUl + (state.antibody.diluentUl || 0);
+      if (totalVol <= 0) return 0;
+      stockConc = (mass / state.antibody.mw) / (totalVol / 1000) * 1000;
+      break;
+    }
+    default: return 0;
+  }
+  if (!stockConc) return 0;
+  // nmol = stockConc (nmol/μL, 因为 1 mM = 1 nmol/μL) × volUl
+  return stockConc * volUl;
+}
+
+function getBaseLabel() {
+  return state.baseLabel || '抗体';
+}
+
+function getReagentStockConc(r) {
+  switch (r.mode) {
+    case 'stock':
+      return r.stockConc || 0;
+    case 'massConc':
+      if (!r.massConc || !r.mw) return 0;
+      return (r.massConc / r.mw) * 1000;
+    case 'powder':
+      if (!r.weighMg || !r.solventUl || !r.mw) return 0;
+      return (r.weighMg / r.mw) / (r.solventUl / 1000) * 1000;
+    case 'liquid': {
+      if (!r.density || !r.sampleUl || !r.mw) return 0;
+      const mass = r.sampleUl * r.density / 1000;
+      const totalVol = r.sampleUl + (r.diluentUl || 0);
+      if (totalVol <= 0) return 0;
+      return (mass / r.mw) / (totalVol / 1000) * 1000;
+    }
+    default:
+      return 0;
+  }
+}
+
+function getReagentAddVol(r) {
+  const abMol = getAbMol();
+  if (!abMol || !r.eq) return 0;
+  const neededMol = abMol * r.eq;
+  const stockConc = getReagentStockConc(r);
+  if (!stockConc) return 0;
+  return neededMol / stockConc;
+}
+
+// ============ 渲染表格 ============
+function renderTable() {
+  const abMol = getAbMol();
+  const abVolDisp = state.antibody.vol;
+  const abMode = state.antibody.mode || 'massConc';
+
+  let totalAddVol = 0;
+  const reagentsData = state.reagents.map(r => {
+    const stockConc = getReagentStockConc(r);
+    const addVol = getReagentAddVol(r);
+    const reagentMol = abMol * r.eq;
+    if (addVol > 0) totalAddVol += addVol;
+    return { ...r, stockConc, addVol, reagentMol };
+  });
+
+  const totalVol = (state.abVolUnit === 'μL' ? state.antibody.vol : state.antibody.vol * 1000) + totalAddVol;
+  const orgPercent = totalVol > 0 ? (totalAddVol / totalVol * 100) : 0;
+
+  // --- 表头（第一列标题可编辑） ---
+  const baseLabel = getBaseLabel();
+  let head = `<tr><th></th><th><input id="baseLabelInput" value="${esc(baseLabel)}" onchange="onStateChange()" placeholder="抗体"></th>`;
+  reagentsData.forEach(r => { head += `<th>${esc(r.name)}</th>`; });
+  head += '</tr>';
+  document.getElementById('tableHead').innerHTML = head;
+
+  // 试剂动态行检查
+  const hasReagentMassConc = reagentsData.some(r => r.mode === 'massConc');
+  const hasReagentPowder   = reagentsData.some(r => r.mode === 'powder');
+  const hasReagentLiquid   = reagentsData.some(r => r.mode === 'liquid');
+
+  // 计算基础列储液浓度（用于显示）
+  const abStockConc = (() => {
+    switch (abMode) {
+      case 'massConc':
+        return state.antibody.conc ? (state.antibody.conc / state.antibody.mw) * 1000 : 0;
+      case 'stock':
+        return state.antibody.stockConc || 0;
+      case 'powder':
+        if (!state.antibody.weighMg || !state.antibody.solventUl || !state.antibody.mw) return 0;
+        return (state.antibody.weighMg / state.antibody.mw) / (state.antibody.solventUl / 1000) * 1000;
+      case 'liquid': {
+        if (!state.antibody.density || !state.antibody.sampleUl || !state.antibody.mw) return 0;
+        const m = state.antibody.sampleUl * state.antibody.density / 1000;
+        const tv = state.antibody.sampleUl + (state.antibody.diluentUl || 0);
+        return tv > 0 ? (m / state.antibody.mw) / (tv / 1000) * 1000 : 0;
+      }
+      default: return 0;
+    }
+  })();
+
+  const colSpan = 2 + reagentsData.length;
+  let html = '';
+
+  // ===== 第1行：相对分子量 =====
+  html += `<tr><td>${t('rowMw')}</td>`;
+  html += `<td><input value="${state.antibody.mw}" id="ab_mw" onchange="onStateChange()"></td>`;
+  reagentsData.forEach(r => {
+    html += `<td><input value="${r.mw}" id="r${r.id}_mw" onchange="onStateChange()"></td>`;
+  });
+  html += '</tr>';
+
+  // ===== 基础列专属行 =====
+
+  // 质量浓度（base= massConc）
+  if (abMode === 'massConc') {
+    html += `<tr><td>${t('rowMassConc')}</td>`;
+    html += `<td><input value="${state.antibody.conc}" id="ab_conc" onchange="onStateChange()"> <span class="hint">mg/mL</span></td>`;
+    reagentsData.forEach(r => {
+      if (r.mode === 'massConc') {
+        html += `<td><input value="${r.massConc || ''}" id="r${r.id}_massConc" onchange="onStateChange()" placeholder="mg/mL"></td>`;
+      } else {
+        html += '<td class="dash">—</td>';
+      }
+    });
+    html += '</tr>';
+  }
+
+  // 储液浓度（base= stock）
+  if (abMode === 'stock') {
+    html += `<tr><td>${t('rowStockConc')}</td>`;
+    html += `<td><input value="${state.antibody.stockConc || ''}" id="ab_stock" onchange="onStateChange()" placeholder="mM"></td>`;
+    reagentsData.forEach(r => {
+      if (r.mode === 'stock') {
+        html += `<td><input value="${r.stockConc || ''}" id="r${r.id}_stock" onchange="onStateChange()" placeholder="mM"></td>`;
+      } else {
+        html += '<td class="dash">—</td>';
+      }
+    });
+    html += '</tr>';
+  }
+
+  // 粉末称量（base= powder）
+  if (abMode === 'powder') {
+    html += `<tr><td>${t('rowWeigh')}</td>`;
+    html += `<td><input value="${state.antibody.weighMg || ''}" id="ab_weigh" onchange="onStateChange()" placeholder="mg"></td>`;
+    reagentsData.forEach(r => { html += '<td class="dash">—</td>'; });
+    html += '</tr>';
+
+    html += `<tr><td>${t('rowSolvent')}</td>`;
+    html += `<td><input value="${state.antibody.solventUl || ''}" id="ab_solvent" onchange="onStateChange()" placeholder="μL"></td>`;
+    reagentsData.forEach(r => { html += '<td class="dash">—</td>'; });
+    html += '</tr>';
+  }
+
+  // 纯液体（base= liquid）
+  if (abMode === 'liquid') {
+    html += `<tr><td>${t('rowDensity')}</td>`;
+    html += `<td><input value="${state.antibody.density || ''}" id="ab_density" onchange="onStateChange()" placeholder="g/mL"></td>`;
+    reagentsData.forEach(r => { html += '<td class="dash">—</td>'; });
+    html += '</tr>';
+
+    html += `<tr><td>${t('rowSample')}</td>`;
+    html += `<td><input value="${state.antibody.sampleUl || ''}" id="ab_sample" onchange="onStateChange()" placeholder="μL"></td>`;
+    reagentsData.forEach(r => { html += '<td class="dash">—</td>'; });
+    html += '</tr>';
+
+    html += `<tr><td>${t('rowDiluent')}</td>`;
+    html += `<td><input value="${state.antibody.diluentUl || ''}" id="ab_diluent" onchange="onStateChange()" placeholder="μL"></td>`;
+    reagentsData.forEach(r => { html += '<td class="dash">—</td>'; });
+    html += '</tr>';
+  }
+
+  // ===== 试剂专属行（base不占用的模式） =====
+  // 质量浓度（base≠massConc 但试剂有）
+  if (abMode !== 'massConc' && hasReagentMassConc) {
+    html += `<tr><td>${t('rowMassConc')}</td>`;
+    html += '<td class="dash">—</td>';
+    reagentsData.forEach(r => {
+      if (r.mode === 'massConc') {
+        html += `<td><input value="${r.massConc || ''}" id="r${r.id}_massConc" onchange="onStateChange()" placeholder="mg/mL"></td>`;
+      } else {
+        html += '<td class="dash">—</td>';
+      }
+    });
+    html += '</tr>';
+  }
+
+  // 粉末（base≠powder 但试剂有）
+  if (abMode !== 'powder' && hasReagentPowder) {
+    html += `<tr><td>${t('rowWeigh')}</td>`;
+    html += '<td class="dash">—</td>';
+    reagentsData.forEach(r => {
+      if (r.mode === 'powder') {
+        html += `<td><input value="${r.weighMg || ''}" id="r${r.id}_weigh" onchange="onStateChange()" placeholder="mg"></td>`;
+      } else {
+        html += '<td class="dash">—</td>';
+      }
+    });
+    html += '</tr>';
+
+    html += `<tr><td>${t('rowSolvent')}</td>`;
+    html += '<td class="dash">—</td>';
+    reagentsData.forEach(r => {
+      if (r.mode === 'powder') {
+        html += `<td><input value="${r.solventUl || ''}" id="r${r.id}_solvent" onchange="onStateChange()" placeholder="μL"></td>`;
+      } else {
+        html += '<td class="dash">—</td>';
+      }
+    });
+    html += '</tr>';
+  }
+
+  // 纯液体（base≠liquid 但试剂有）
+  if (abMode !== 'liquid' && hasReagentLiquid) {
+    html += `<tr><td>${t('rowDensity')}</td>`;
+    html += '<td class="dash">—</td>';
+    reagentsData.forEach(r => {
+      if (r.mode === 'liquid') {
+        html += `<td><input value="${r.density || ''}" id="r${r.id}_density" onchange="onStateChange()" placeholder="g/mL"></td>`;
+      } else {
+        html += '<td class="dash">—</td>';
+      }
+    });
+    html += '</tr>';
+
+    html += `<tr><td>${t('rowSample')}</td>`;
+    html += '<td class="dash">—</td>';
+    reagentsData.forEach(r => {
+      if (r.mode === 'liquid') {
+        html += `<td><input value="${r.sampleUl || ''}" id="r${r.id}_sample" onchange="onStateChange()" placeholder="μL"></td>`;
+      } else {
+        html += '<td class="dash">—</td>';
+      }
+    });
+    html += '</tr>';
+
+    html += `<tr><td>${t('rowDiluent')}</td>`;
+    html += '<td class="dash">—</td>';
+    reagentsData.forEach(r => {
+      if (r.mode === 'liquid') {
+        html += `<td><input value="${r.diluentUl || ''}" id="r${r.id}_diluent" onchange="onStateChange()" placeholder="μL"></td>`;
+      } else {
+        html += '<td class="dash">—</td>';
+      }
+    });
+    html += '</tr>';
+  }
+
+  // ===== 储液浓度收敛行（base非stock且试剂非stock时也显示） =====
+  if (abMode !== 'stock' || reagentsData.some(r => r.mode !== 'stock')) {
+    html += `<tr class="section-sep"><td colspan="${colSpan}"></td></tr>`;
+    html += `<tr><td>${t('rowStockConc')}</td>`;
+    if (abMode === 'stock') {
+      // stock mode already rendered above, show computed value or dash
+      html += '<td class="dash">—</td>';
+    } else {
+      html += `<td><span class="calc-dim">${abStockConc > 0 ? abStockConc.toFixed(2) : '—'}</span> <span class="hint">mM</span></td>`;
+    }
+    reagentsData.forEach(r => {
+      if (r.mode === 'stock' && abMode === 'stock') {
+        // already rendered in the stock row above
+        html += '<td class="dash">—</td>';
+      } else if (r.mode === 'stock') {
+        html += `<td><input value="${r.stockConc || ''}" id="r${r.id}_stock" onchange="onStateChange()" placeholder="mM"></td>`;
+      } else {
+        const v = r.stockConc > 0 ? r.stockConc.toFixed(2) : '—';
+        html += `<td><span class="calc-dim">${v}</span> <span class="hint">mM</span></td>`;
+      }
+    });
+    html += '</tr>';
+  }
+
+  // ===== 通用行 =====
+  // 取用体积
+  html += `<tr><td>${t('rowVolume')}</td>`;
+  html += `<td><input value="${abVolDisp}" id="ab_vol" onchange="onStateChange()"> <span class="hint">${state.abVolUnit}</span></td>`;
+  reagentsData.forEach(r => {
+    const v = r.addVol > 0 ? r.addVol.toFixed(1) : '—';
+    html += `<td><span class="calc-val">${v}</span> <span class="hint">μL</span></td>`;
+  });
+  html += '</tr>';
+
+  // 摩尔量
+  html += `<tr><td>${t('rowNmol')}</td>`;
+  html += `<td><span class="calc-val">${abMol.toFixed(2)}</span></td>`;
+  reagentsData.forEach(r => {
+    html += `<td><span class="calc-val">${r.reagentMol.toFixed(2)}</span></td>`;
+  });
+  html += '</tr>';
+
+  // 当量比
+  html += `<tr><td>${t('rowEq')}</td>`;
+  html += '<td><span class="calc-val">1.00</span></td>';
+  reagentsData.forEach(r => {
+    html += `<td><input value="${r.eq}" id="r${r.id}_eq" onchange="onStateChange()" style="width:64px;"></td>`;
+  });
+  html += '</tr>';
+
+  // 有机相占比
+  html += `<tr><td>${t('rowOrg')}</td>`;
+  html += '<td class="dash">—</td>';
+  reagentsData.forEach(r => {
+    const pct = totalVol > 0 ? (r.addVol / totalVol * 100) : 0;
+    const color = (orgPercent > state.orgLimit) ? 'color:#d73a49;font-weight:600' : '';
+    html += `<td><span class="calc-val" style="${color}">${pct.toFixed(1)}</span></td>`;
+  });
+  html += '</tr>';
+
+  // ===== 控制行 =====
+  html += `<tr class="section-sep"><td colspan="${colSpan}"></td></tr>`;
+
+  // 基础列输入模式
+  html += `<tr class="mode-row"><td>${t('rowMode')}</td>`;
+  const sel = (v) => abMode === v ? 'selected' : '';
+  html += `<td><select id="ab_mode_sel" onchange="onStateChange()">
+    <option value="massConc" ${sel('massConc')}>${t('modeMassConc')}</option>
+    <option value="stock" ${sel('stock')}>${t('modeStock')}</option>
+    <option value="powder" ${sel('powder')}>${t('modePowder')}</option>
+    <option value="liquid" ${sel('liquid')}>${t('modeLiquid')}</option>
+  </select></td>`;
+  // 试剂输入模式
+  reagentsData.forEach(r => {
+    const rs = (v) => r.mode === v ? 'selected' : '';
+    html += `<td><select id="r${r.id}_mode" onchange="onStateChange()">
+      <option value="massConc" ${rs('massConc')}>${t('modeMassConc')}</option>
+      <option value="stock" ${rs('stock')}>${t('modeStock')}</option>
+      <option value="powder" ${rs('powder')}>${t('modePowder')}</option>
+      <option value="liquid" ${rs('liquid')}>${t('modeLiquid')}</option>
+    </select></td>`;
+  });
+  html += '</tr>';
+
+  // 删除
+  html += '<tr><td></td><td></td>';
+  reagentsData.forEach(r => {
+    html += `<td><button class="btn btn-danger" onclick="removeReagent(${r.id})" style="font-size:11px;padding:2px 10px;">×</button></td>`;
+  });
+  html += '</tr>';
+
+  document.getElementById('tableBody').innerHTML = html;
+
+  // --- 警告 ---
+  let warnings = '';
+  if (orgPercent > state.orgLimit) {
+    warnings += `<div class="alert alert-danger">❌ ${t('warnOrgOver').replace('{pct}', orgPercent.toFixed(1)).replace('{limit}', state.orgLimit).replace('{base}', esc(baseLabel))}</div>`;
+  } else if (orgPercent > state.orgLimit * 0.8) {
+    warnings += `<div class="alert alert-warn">⚠️ ${t('warnOrgNear').replace('{pct}', orgPercent.toFixed(1)).replace('{limit}', state.orgLimit)}</div>`;
+  }
+  reagentsData.forEach(r => {
+    if (r.eq > 50) {
+      warnings += `<div class="alert alert-warn">⚠️ ${t('warnEqHigh').replace('{name}', esc(r.name)).replace('{eq}', r.eq)}</div>`;
+    }
+  });
+  document.getElementById('warnings').innerHTML = warnings;
+}
+
+// ============ 试剂管理 ============
+function addReagent() {
+  const name = prompt(t('promptReagent'), `${t('promptDefault')}${state.nextId + 1}`);
+  if (!name) return;
+  state.reagents.push({
+    id: state.nextId, name, mw: 0, eq: 5, mode: 'stock',
+    stockConc: 0, massConc: '', weighMg: '', solventUl: '',
+    density: '', sampleUl: '', diluentUl: '',
+  });
+  state.nextId++;
+  saveState();
+  renderTable();
+}
+
+function removeReagent(id) {
+  state.reagents = state.reagents.filter(r => r.id !== id);
+  saveState();
+  renderTable();
+}
+
+// ============ 导出 ============
+function exportTable() {
+  syncDomToState();
+  const abMol = getAbMol();
+
+  let totalAddVol = 0;
+  const rd = state.reagents.map(r => {
+    const sc = getReagentStockConc(r);
+    const av = getReagentAddVol(r);
+    const rm = abMol * r.eq;
+    if (av > 0) totalAddVol += av;
+    return { ...r, stockConc: sc, addVol: av, reagentMol: rm };
+  });
+  const totalVol = (state.abVolUnit === 'μL' ? state.antibody.vol : state.antibody.vol * 1000) + totalAddVol;
+  const orgPercent = totalVol > 0 ? (totalAddVol / totalVol * 100) : 0;
+
+  let text = `${t('exportTitle')} — ${new Date().toISOString().slice(0,10)}\n`;
+  const baseLabel = getBaseLabel();
+  const exportLineAb = t('exportBase').replace('{base}', baseLabel).replace('{mw}', state.antibody.mw).replace('{conc}', state.antibody.conc).replace('{vol}', state.antibody.vol).replace('{unit}', state.abVolUnit).replace('{nmol}', abMol.toFixed(2)) + '\n';
+  text += exportLineAb;
+  rd.forEach(r => {
+    text += t('exportLine').replace('{name}', r.name).replace('{mw}', r.mw).replace('{eq}', r.eq).replace('{mode}', t('modeLabel')[r.mode]).replace('{stock}', r.stockConc.toFixed(2)).replace('{add}', r.addVol > 0 ? r.addVol.toFixed(1) : '—') + '\n';
+  });
+  text += t('exportOrg').replace('{pct}', orgPercent.toFixed(1)).replace('{limit}', state.orgLimit) + '\n';
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert(t('copied'));
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert(t('copied'));
+  });
+}
+
+// ============ 辅助 ============
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggleGuide() { document.getElementById('guide').classList.toggle('open'); }
+
+// ============ 启动 ============
+applyStaticText();
+document.getElementById('abVolUnit').value = state.abVolUnit;
+document.getElementById('orgLimit').value = state.orgLimit;
+renderTable();
+</script>
+</body>
+</html>
