@@ -113,6 +113,38 @@
   .about-content { display: none; background: var(--input-bg); border-radius: 4px; padding: 12px 18px; margin: 8px auto 0; max-width: 420px; font-size: 13px; line-height: 2; color: var(--text-secondary); text-align: left; }
   .about-content.open { display: block; }
   .about-content p { margin: 2px 0; }
+
+  /* ====== 移动端适配 ====== */
+  @media (max-width: 640px) {
+    body { padding: 16px 10px; }
+
+    .header { flex-direction: column; gap: 10px; align-items: stretch; }
+    .header h1 { font-size: 18px; }
+    .lang-switch { align-self: flex-end; }
+
+    .card { padding: 14px 16px; }
+
+    .settings { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .settings .sep { display: none; }
+    .settings .field-group { width: 100%; justify-content: space-between; }
+    .settings input { width: 60px; }
+
+    .table-wrap { -webkit-overflow-scrolling: touch; }
+    table { font-size: 12px; min-width: auto; }
+    thead th { padding: 8px 8px; font-size: 11px; }
+    thead th:first-child { min-width: 90px; }
+    tbody td { padding: 6px 8px; }
+    tbody td:first-child { min-width: 90px; }
+    tbody input { width: 56px; padding: 4px 6px; font-size: 12px; }
+
+    .btn-row { flex-wrap: wrap; }
+    .btn-row .btn { flex: 1; min-width: 100px; text-align: center; padding: 8px 10px; font-size: 13px; }
+
+    .about-content { max-width: 100%; font-size: 12px; }
+    .footnote { font-size: 11px; }
+
+    .guide-toggle { margin-left: 0; }
+  }
 </style>
 </head>
 <body>
